@@ -83,6 +83,33 @@ Whether you're dialing in darkroom contrast curves, composing an architectural m
 Feel free to ask me for composition critiques, camera EXIF recommendations, or a guided tour of any feature!`;
 }
 
+async function generateOmniReply(contents: any[], message: string): Promise<string> {
+  if (!ai) return getOmniSmartFallback(message);
+
+  const candidateModels = ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-flash-latest'];
+
+  for (const model of candidateModels) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents,
+      });
+      if (response && response.text) {
+        return response.text;
+      }
+    } catch (err: any) {
+      const isUnavailable =
+        err?.status === 'UNAVAILABLE' ||
+        err?.code === 503 ||
+        err?.message?.includes('503') ||
+        err?.message?.includes('high demand');
+      console.warn(`Model ${model} ${isUnavailable ? 'high demand spike' : 'request notice'}: switching to fallback`);
+    }
+  }
+
+  return getOmniSmartFallback(message);
+}
+
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -95,35 +122,25 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    if (ai) {
-      const chatHistory = Array.isArray(history)
-        ? history.slice(-6).map((h: { sender: string; text: string }) => ({
-            role: h.sender === 'user' ? 'user' : 'model',
-            parts: [{ text: h.text }],
-          }))
-        : [];
+    const chatHistory = Array.isArray(history)
+      ? history.slice(-6).map((h: { sender: string; text: string }) => ({
+          role: h.sender === 'user' ? 'user' : 'model',
+          parts: [{ text: h.text }],
+        }))
+      : [];
 
-      const contents = [
-        ...chatHistory,
-        {
-          role: 'user',
-          parts: [{ text: `${OMNI_SYSTEM_INSTRUCTION}\n\nUser Question: ${message}` }],
-        },
-      ];
+    const contents = [
+      ...chatHistory,
+      {
+        role: 'user',
+        parts: [{ text: `${OMNI_SYSTEM_INSTRUCTION}\n\nUser Question: ${message}` }],
+      },
+    ];
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
-        contents,
-      });
-
-      const replyText = response.text || getOmniSmartFallback(message);
-      return res.status(200).json({ reply: replyText });
-    } else {
-      const fallbackReply = getOmniSmartFallback(message);
-      return res.status(200).json({ reply: fallbackReply });
-    }
+    const replyText = await generateOmniReply(contents, message);
+    return res.status(200).json({ reply: replyText });
   } catch (error: any) {
-    console.error('Omni AI Chat error:', error);
+    console.warn('Omni AI Chat handled fallback:', error?.message || error);
     const fallbackReply = getOmniSmartFallback(message);
     return res.status(200).json({ reply: fallbackReply });
   }

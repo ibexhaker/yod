@@ -82,6 +82,33 @@ Whether you're dialing in darkroom contrast curves, composing an architectural m
 Feel free to ask me for composition critiques, camera EXIF recommendations, or a guided tour of any feature!`;
 }
 
+async function generateOmniReply(contents: any[], message: string): Promise<string> {
+  if (!ai) return getOmniSmartFallback(message);
+
+  const candidateModels = ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-flash-latest'];
+
+  for (const model of candidateModels) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents,
+      });
+      if (response && response.text) {
+        return response.text;
+      }
+    } catch (err: any) {
+      const isUnavailable =
+        err?.status === 'UNAVAILABLE' ||
+        err?.code === 503 ||
+        err?.message?.includes('503') ||
+        err?.message?.includes('high demand');
+      console.warn(`Netlify Model ${model} ${isUnavailable ? 'high demand spike' : 'request notice'}: switching to fallback`);
+    }
+  }
+
+  return getOmniSmartFallback(message);
+}
+
 export const handler = async (event: any) => {
   // CORS Headers
   const headers = {
@@ -129,43 +156,29 @@ export const handler = async (event: any) => {
   }
 
   try {
-    if (ai) {
-      const chatHistory = Array.isArray(history)
-        ? history.slice(-6).map((h: { sender: string; text: string }) => ({
-            role: h.sender === 'user' ? 'user' : 'model',
-            parts: [{ text: h.text }],
-          }))
-        : [];
+    const chatHistory = Array.isArray(history)
+      ? history.slice(-6).map((h: { sender: string; text: string }) => ({
+          role: h.sender === 'user' ? 'user' : 'model',
+          parts: [{ text: h.text }],
+        }))
+      : [];
 
-      const contents = [
-        ...chatHistory,
-        {
-          role: 'user',
-          parts: [{ text: `${OMNI_SYSTEM_INSTRUCTION}\n\nUser Question: ${message}` }],
-        },
-      ];
+    const contents = [
+      ...chatHistory,
+      {
+        role: 'user',
+        parts: [{ text: `${OMNI_SYSTEM_INSTRUCTION}\n\nUser Question: ${message}` }],
+      },
+    ];
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
-        contents,
-      });
-
-      const replyText = response.text || getOmniSmartFallback(message);
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({ reply: replyText }),
-      };
-    } else {
-      const fallbackReply = getOmniSmartFallback(message);
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({ reply: fallbackReply }),
-      };
-    }
+    const replyText = await generateOmniReply(contents, message);
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({ reply: replyText }),
+    };
   } catch (error: any) {
-    console.error('Netlify Omni Chat error:', error);
+    console.warn('Netlify Omni Chat notice:', error?.message || error);
     const fallbackReply = getOmniSmartFallback(message);
     return {
       statusCode: 200,

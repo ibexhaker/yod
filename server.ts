@@ -99,47 +99,63 @@ Whether you're dialing in darkroom contrast curves, composing an architectural m
 Feel free to ask me for composition critiques, camera EXIF recommendations, or a guided tour of any feature!`;
 }
 
+// Multi-model generator with fallback for high demand or temporary 503 spikes
+async function generateOmniReply(contents: any[], message: string): Promise<string> {
+  if (!ai) return getOmniSmartFallback(message);
+
+  const candidateModels = ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-flash-latest'];
+
+  for (const model of candidateModels) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents,
+      });
+      if (response && response.text) {
+        return response.text;
+      }
+    } catch (err: any) {
+      const isUnavailable =
+        err?.status === 'UNAVAILABLE' ||
+        err?.code === 503 ||
+        err?.message?.includes('503') ||
+        err?.message?.includes('high demand');
+      console.warn(`Model ${model} ${isUnavailable ? 'high demand spike' : 'request notice'}: switching to fallback`);
+    }
+  }
+
+  return getOmniSmartFallback(message);
+}
+
 // POST /api/omni/chat
 app.post('/api/omni/chat', async (req, res) => {
-  const { message, history } = req.body;
+  const { message, history } = req.body || {};
 
   if (!message || typeof message !== 'string') {
     return res.status(400).json({ error: 'Message string is required' });
   }
 
   try {
-    if (ai) {
-      // Build conversation context
-      const chatHistory = Array.isArray(history)
-        ? history.slice(-6).map((h: { sender: string; text: string }) => ({
-            role: h.sender === 'user' ? 'user' : 'model',
-            parts: [{ text: h.text }],
-          }))
-        : [];
+    // Build conversation context
+    const chatHistory = Array.isArray(history)
+      ? history.slice(-6).map((h: { sender: string; text: string }) => ({
+          role: h.sender === 'user' ? 'user' : 'model',
+          parts: [{ text: h.text }],
+        }))
+      : [];
 
-      const contents = [
-        ...chatHistory,
-        {
-          role: 'user',
-          parts: [{ text: `${OMNI_SYSTEM_INSTRUCTION}\n\nUser Question: ${message}` }],
-        },
-      ];
+    const contents = [
+      ...chatHistory,
+      {
+        role: 'user',
+        parts: [{ text: `${OMNI_SYSTEM_INSTRUCTION}\n\nUser Question: ${message}` }],
+      },
+    ];
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
-        contents,
-      });
-
-      const replyText = response.text || getOmniSmartFallback(message);
-      return res.json({ reply: replyText });
-    } else {
-      // Graceful smart fallback when API key is not yet configured in environment
-      const fallbackReply = getOmniSmartFallback(message);
-      return res.json({ reply: fallbackReply });
-    }
+    const replyText = await generateOmniReply(contents, message);
+    return res.json({ reply: replyText });
   } catch (error: any) {
-    console.error('Omni AI Chat error:', error);
-    // Return intelligent fallback answer on API error
+    console.warn('Omni chat notice:', error?.message || 'Handled fallback');
     const fallbackReply = getOmniSmartFallback(message);
     return res.json({ reply: fallbackReply });
   }

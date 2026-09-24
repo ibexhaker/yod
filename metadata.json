@@ -1,0 +1,8 @@
+{
+  "name": "Snap Grid",
+  "description": "An interactive photo-sharing feed and social grid prototype with double-tap likes, rich post creator, interactive comments, explore discovery, and user profiles.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

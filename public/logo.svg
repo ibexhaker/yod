@@ -1,0 +1,84 @@
+<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="200" height="200" rx="36" fill="#000000"/>
+  
+  <!-- Outer Viewfinder Frame with left/right notches and rounded corners -->
+  <path
+    d="M 60 22 
+       L 140 22 
+       A 38 38 0 0 1 178 60 
+       L 178 94 
+       M 178 106 
+       L 178 140 
+       A 38 38 0 0 1 140 178 
+       L 60 178 
+       A 38 38 0 0 1 22 140 
+       L 22 106 
+       M 22 94 
+       L 22 60 
+       A 38 38 0 0 1 60 22 Z"
+    stroke="#FFFFFF"
+    stroke-width="10"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Top right camera lens dot -->
+  <circle
+    cx="144"
+    cy="56"
+    r="9"
+    stroke="#FFFFFF"
+    stroke-width="5.5"
+    fill="none"
+  />
+
+  <!-- Interlocking 'S' and 'G' monogram glyph -->
+  <!-- Upper S segment -->
+  <path
+    d="M 124 60 
+       L 68 60 
+       A 22 22 0 0 0 46 82 
+       L 46 88 
+       A 22 22 0 0 0 68 110 
+       L 110 110 
+       L 110 120 
+       A 22 22 0 0 1 88 142 
+       L 58 142 
+       L 40 156 
+       L 88 156 
+       A 36 36 0 0 0 124 120 
+       L 124 102 
+       A 22 22 0 0 0 102 80 
+       L 62 80 
+       L 62 72 
+       L 106 72 
+       Z"
+    fill="#FFFFFF"
+  />
+
+  <!-- Interlocking G segment -->
+  <path
+    d="M 98 82 
+       L 138 82 
+       L 156 68 
+       L 112 68 
+       A 36 36 0 0 0 76 104 
+       L 76 116 
+       A 22 22 0 0 0 98 138 
+       L 136 138 
+       L 136 114 
+       L 116 114 
+       L 116 100 
+       L 150 100 
+       L 150 144 
+       A 22 22 0 0 1 128 166 
+       L 74 166 
+       A 44 44 0 0 1 30 122 
+       L 30 102 
+       A 44 44 0 0 1 74 60 
+       L 82 60 
+       Z"
+    fill="#FFFFFF"
+  />
+</svg>

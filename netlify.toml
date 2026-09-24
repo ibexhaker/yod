@@ -1,0 +1,16 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+# Forward Omni AI route to Netlify Function
+[[redirects]]
+  from = "/api/omni/chat"
+  to = "/.netlify/functions/chat"
+  status = 200
+
+# Single Page App (SPA) fallback to index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

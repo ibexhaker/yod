@@ -29,6 +29,8 @@ import { OmniAssistant } from './components/OmniAssistant';
 import { SnapGridLogo } from './components/SnapGridLogo';
 import { AuthModal } from './components/AuthModal';
 import { ReelsView } from './components/ReelsView';
+import { PWAInstallButton } from './components/PWAInstallButton';
+import { OfflineIndicator } from './components/OfflineIndicator';
 import { THEMES, THEME_STYLES } from './utils/theme';
 import { sound } from './utils/audio';
 import {
@@ -626,6 +628,9 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* PWA Install Button (Mobile Compact) */}
+          <PWAInstallButton variant="compact" />
+
           {/* Omni AI Button (Mobile) */}
           <button
             onClick={() => {
@@ -955,6 +960,9 @@ export default function App() {
 
               {/* Account Quick Badge & Action Buttons */}
               <div className="flex items-center gap-3 md:gap-5 font-sans text-[11px] uppercase tracking-widest font-semibold flex-wrap">
+                {/* PWA Install Button (Desktop Pill) */}
+                <PWAInstallButton variant="pill" />
+
                 {/* Omni AI Assistant Launcher */}
                 <button
                   id="header-omni-btn"
@@ -1554,6 +1562,9 @@ export default function App() {
           setIsNewPostModalOpen(true);
         }}
       />
+
+      {/* 7. PWA Connectivity Status */}
+      <OfflineIndicator />
     </div>
   );
 }

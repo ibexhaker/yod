@@ -22,6 +22,7 @@ import {
 import { sound } from '../utils/audio';
 import { getPhotoFilterStyle, THEMES } from '../utils/theme';
 import { AppTheme } from '../types';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface ProfileViewProps {
   user: UserProfile;
@@ -335,6 +336,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             )}
           </div>
         </div>
+
+        {/* PWA Web App Install Card (shown if not yet installed) */}
+        {isCurrentUser && (
+          <PWAInstallButton variant="card" className="mt-6" />
+        )}
       </div>
 
       {/* Tabs */}

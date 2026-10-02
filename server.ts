@@ -1,5 +1,7 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
+import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
@@ -160,6 +162,25 @@ app.post('/api/omni/chat', async (req, res) => {
     return res.json({ reply: fallbackReply });
   }
 });
+
+// GET /api/download-project - Generates and sends full project .zip file
+app.get('/api/download-project', (_req, res) => {
+  try {
+    const zipPath = path.join(__dirname, 'public', 'snap-grid-project.zip');
+    if (!fs.existsSync(zipPath)) {
+      execSync(`node scripts/pack-zip.js`, { stdio: 'inherit' });
+    }
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', 'attachment; filename="snap-grid-project.zip"');
+    return res.sendFile(zipPath);
+  } catch (err: any) {
+    console.error('Failed to send project zip:', err);
+    return res.status(500).json({ error: 'Could not generate download archive' });
+  }
+});
+
+// Serve static assets from public directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Vite middleware for dev or static serving for prod
 async function startServer() {

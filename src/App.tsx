@@ -31,6 +31,7 @@ import { AuthModal } from './components/AuthModal';
 import { ReelsView } from './components/ReelsView';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { DownloadProjectModal } from './components/DownloadProjectModal';
 import { THEMES, THEME_STYLES } from './utils/theme';
 import { sound } from './utils/audio';
 import {
@@ -54,6 +55,7 @@ import {
   Award,
   Users,
   MessageCircle,
+  FolderDown,
 } from 'lucide-react';
 
 const STORAGE_ACCOUNTS_KEY = 'snapgrid_accounts_v5';
@@ -112,6 +114,7 @@ export default function App() {
   });
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [isOmniOpen, setIsOmniOpen] = useState(false);
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
 
   const feedScrollRef = useRef<HTMLDivElement>(null);
 
@@ -628,6 +631,19 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Download Code Button (Mobile) */}
+          <button
+            onClick={() => {
+              sound.playPop();
+              setIsDownloadModalOpen(true);
+            }}
+            className="p-1.5 rounded-full border border-[#1A1A1A]/10 text-neutral-800 hover:bg-neutral-100 transition-colors"
+            title="Download Full Project Source Code (.zip)"
+            aria-label="Download Full Project Source Code (.zip)"
+          >
+            <FolderDown className="w-4 h-4 text-neutral-800" />
+          </button>
+
           {/* PWA Install Button (Mobile Compact) */}
           <PWAInstallButton variant="compact" />
 
@@ -774,6 +790,7 @@ export default function App() {
                     onBackToMyProfile={() => setViewingCuratorUsername(null)}
                     onEditPost={(post) => setEditingPost(post)}
                     onSelectTheme={handleSelectTheme}
+                    onOpenDownloadModal={() => setIsDownloadModalOpen(true)}
                     currentTheme={currentTheme}
                   />
                 </div>
@@ -960,6 +977,20 @@ export default function App() {
 
               {/* Account Quick Badge & Action Buttons */}
               <div className="flex items-center gap-3 md:gap-5 font-sans text-[11px] uppercase tracking-widest font-semibold flex-wrap">
+                {/* Download Code Button (Desktop) */}
+                <button
+                  id="header-download-code-btn"
+                  onClick={() => {
+                    sound.playPop();
+                    setIsDownloadModalOpen(true);
+                  }}
+                  className="px-3 py-1.5 rounded-full text-[11px] font-sans font-bold uppercase tracking-wider transition-all duration-200 flex items-center gap-1.5 shadow-sm active:scale-95 border border-black/15 bg-white text-neutral-900 hover:bg-neutral-900 hover:text-white cursor-pointer"
+                  title="Download complete project source code (.zip)"
+                >
+                  <FolderDown className="w-3.5 h-3.5 stroke-[2]" />
+                  <span>Download Code</span>
+                </button>
+
                 {/* PWA Install Button (Desktop Pill) */}
                 <PWAInstallButton variant="pill" />
 
@@ -1127,6 +1158,7 @@ export default function App() {
                   onBackToMyProfile={() => setViewingCuratorUsername(null)}
                   onEditPost={(p) => setEditingPost(p)}
                   onSelectTheme={handleSelectTheme}
+                  onOpenDownloadModal={() => setIsDownloadModalOpen(true)}
                   currentTheme={currentTheme}
                 />
               ) : activeTab === 'messages' ? (
@@ -1563,7 +1595,13 @@ export default function App() {
         }}
       />
 
-      {/* 7. PWA Connectivity Status */}
+      {/* 7. Download Project Archive Modal */}
+      <DownloadProjectModal
+        isOpen={isDownloadModalOpen}
+        onClose={() => setIsDownloadModalOpen(false)}
+      />
+
+      {/* 8. PWA Connectivity Status */}
       <OfflineIndicator />
     </div>
   );

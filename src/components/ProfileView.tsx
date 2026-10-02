@@ -18,6 +18,8 @@ import {
   Send,
   Sliders,
   Palette,
+  Download,
+  FolderDown,
 } from 'lucide-react';
 import { sound } from '../utils/audio';
 import { getPhotoFilterStyle, THEMES } from '../utils/theme';
@@ -38,6 +40,7 @@ interface ProfileViewProps {
   onBackToMyProfile?: () => void;
   onEditPost?: (post: Post) => void;
   onSelectTheme?: (theme: AppTheme) => void;
+  onOpenDownloadModal?: () => void;
   currentTheme?: AppTheme;
 }
 
@@ -55,6 +58,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onBackToMyProfile,
   onEditPost,
   onSelectTheme,
+  onOpenDownloadModal,
   currentTheme = 'white-blue',
 }) => {
   const [activeTab, setActiveTab] = useState<'posts' | 'saved'>('posts');
@@ -340,6 +344,37 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         {/* PWA Web App Install Card (shown if not yet installed) */}
         {isCurrentUser && (
           <PWAInstallButton variant="card" className="mt-6" />
+        )}
+
+        {/* Source Code Download Card */}
+        {isCurrentUser && (
+          <div className="mt-4 p-4 rounded-2xl bg-white border border-neutral-200/90 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center shrink-0 shadow-sm">
+                <FolderDown className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h4 className="font-sans font-bold text-sm text-neutral-900">Download Source Code (.ZIP)</h4>
+                <p className="font-sans text-xs text-neutral-500">
+                  Export complete project files to run locally, push to GitHub, or deploy on Vercel & Netlify.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                sound.playPop();
+                if (onOpenDownloadModal) {
+                  onOpenDownloadModal();
+                } else {
+                  window.location.href = '/api/download-project';
+                }
+              }}
+              className="px-4 py-2 bg-neutral-900 text-white rounded-full font-sans text-xs font-bold hover:bg-black transition-all shrink-0 flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download .ZIP</span>
+            </button>
+          </div>
         )}
       </div>
 
